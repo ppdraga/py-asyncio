@@ -1,11 +1,16 @@
 
 
 import socket
-import sys
 
+from views import index, blog
+
+# URLS = {
+#     '/': 'HELLO INDEX',
+#     '/blog': 'HELLO BLOG'
+# }
 URLS = {
-    '/': 'HELLO INDEX',
-    '/blog': 'HELLO BLOG'
+    '/': index,
+    '/blog': blog
 }
 
 
@@ -17,14 +22,11 @@ def generate_header(method, url):
     return 'HTTP/1.1 200 OK\n\n', 200
 
 def generate_body(code, url):
-    if code == '404':
+    if code == 404:
         return '<h1>404</h1><p>Not found</p>'
-    if code == '405':
+    if code == 405:
         return '<h1>405</h1><p>Method not alowed</p>'
-    try:
-        return URLS[url]
-    except Exception as e:
-        return str(sys.exc_info())
+    return URLS[url]()
 
 def generate_response(request):
     method, url = parse_request(request)
