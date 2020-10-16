@@ -46,28 +46,43 @@ def client(client_socket):
 def event_loop():
     print('Main event loop!')
     while any([tasks, to_read, to_write]):
-        print(tasks)
+        to_read_str = ['{}-{}'.format(t[0].getsockname(), t[1].__name__) for t in to_read.items()] if to_read else 'empty'
+        to_write_str = ['{}-{}'.format(t[0].getsockname(), t[1].__name__) for t in to_write.items()] if to_write else 'empty'
+        print('tasks:', [t.__name__ for t in tasks], 
+            '\nto_read:', to_read_str, 
+            '\nto_write:', to_write_str)
         while not tasks:
             print('Check sockets')
             ready_to_read, ready_to_write, _ = select(to_read, to_write, [])
 
+            print('Spread sockets to tasks')
+
             for sock in ready_to_read:
                 tasks.append(to_read.pop(sock))
+                print('Socket', sock.getsockname(), 'added to read')
 
             for sock in ready_to_write:
                 tasks.append(to_write.pop(sock))
-    try:
-        task = tasks.pop(0)
-        print('Task:', task.__name__)
-        action, sock = task.__next__()
+                print('Socket', sock.getsockname(), 'added to write')
 
-        if action == 'read':
-            to_read[sock] = task
+        try:
+            task = tasks.pop(0)
+            print('Task execution:', task.__name__)
+            action, sock = task.__next__()
 
-        if action == 'write':
-            to_write[sock] = task
-    except StopIteration:
-        print('Done!')
+            sockname = sock.getsockname()
+            print(f'Returned after execution: action: {action}, socket: {sockname}')
+            if action == 'read':
+                to_read[sock] = task
+                print('Added to dict: to_read[{}]={}'.format(sockname, task.__name__))
+
+            if action == 'write':
+                to_write[sock] = task
+                print('Added to dict: to_write[{}]={}'.format(sockname, task.__name__))
+
+
+        except StopIteration:
+            print('Done!')
 
 
 tasks.append(server())
