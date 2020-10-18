@@ -36,7 +36,7 @@ def write_image(data, filename):
 async def fetch_content(url, session):
     async with session.get(url, allow_redirects=True) as response:
         data = await response.read()
-        write_image(data, f'{i}.jpeg')
+        write_image(data, response.url.name)
         # print(data)
 
 
@@ -47,7 +47,7 @@ async def main2():
             task = asyncio.create_task(fetch_content(URL, session))
             tasks.append(task)
 
-        await asyncio.gather(*task)
+        await asyncio.gather(*tasks)
 
 
 if __name__ == '__main__':
